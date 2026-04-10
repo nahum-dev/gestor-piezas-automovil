@@ -6,9 +6,13 @@ import {
   FlatList,
   StyleSheet,
   SafeAreaView,
+  TextInput,
+  ScrollView,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 export default function App() {
+  const [pantalla, setPantalla] = useState('principal');
   const [piezas, setPiezas] = useState([
     {
       id: '1',
@@ -28,8 +32,38 @@ export default function App() {
     },
   ]);
 
+  // Estado del formulario
+  const [tipo, setTipo] = useState('Bujía');
+  const [marca, setMarca] = useState('');
+  const [noSerie, setNoSerie] = useState('');
+  const [precio, setPrecio] = useState('');
+  const [fecha, setFecha] = useState('');
+
   const eliminarPieza = (id) => {
     setPiezas(piezas.filter((p) => p.id !== id));
+  };
+
+  const guardarPieza = () => {
+    if (!marca || !noSerie || !precio || !fecha) {
+      alert('Por favor completa todos los campos');
+      return;
+    }
+    const nueva = {
+      id: Date.now().toString(),
+      tipo,
+      marca,
+      noSerie,
+      precio,
+      fecha,
+    };
+    setPiezas([...piezas, nueva]);
+    // Limpiar formulario
+    setTipo('Bujía');
+    setMarca('');
+    setNoSerie('');
+    setPrecio('');
+    setFecha('');
+    setPantalla('principal');
   };
 
   const piezasOrdenadas = [...piezas].sort(
@@ -58,13 +92,94 @@ export default function App() {
     </TouchableHighlight>
   );
 
+  // ── PANTALLA FORMULARIO ──
+  if (pantalla === 'formulario') {
+    return (
+      <SafeAreaView style={styles.contenedor}>
+        <Text style={styles.titulo}>Registro de piezas</Text>
+        <ScrollView>
+
+          <Text style={styles.label}>Pieza</Text>
+          <View style={styles.pickerContenedor}>
+            <Picker
+              selectedValue={tipo}
+              onValueChange={(value) => setTipo(value)}
+            >
+              <Picker.Item label="Bujía" value="Bujía" />
+              <Picker.Item label="Filtro de aceite" value="Filtro de aceite" />
+              <Picker.Item label="Filtro de aire" value="Filtro de aire" />
+              <Picker.Item label="Pastillas de freno" value="Pastillas de freno" />
+              <Picker.Item label="Batería" value="Batería" />
+              <Picker.Item label="Correa de distribución" value="Correa de distribución" />
+              <Picker.Item label="Amortiguador" value="Amortiguador" />
+              <Picker.Item label="Alternador" value="Alternador" />
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Marca</Text>
+          <TextInput
+            style={styles.input}
+            value={marca}
+            onChangeText={setMarca}
+            placeholder="Ej: Bosch"
+          />
+
+          <Text style={styles.label}>No. Serie</Text>
+          <TextInput
+            style={styles.input}
+            value={noSerie}
+            onChangeText={setNoSerie}
+            placeholder="Ej: S013523"
+          />
+
+          <Text style={styles.label}>Precio</Text>
+          <TextInput
+            style={styles.input}
+            value={precio}
+            onChangeText={setPrecio}
+            placeholder="Ej: 15.00"
+            keyboardType="decimal-pad"
+          />
+
+          <Text style={styles.label}>Fecha de Cambio</Text>
+          <TextInput
+            style={styles.input}
+            value={fecha}
+            onChangeText={setFecha}
+            placeholder="YYYY-MM-DD"
+          />
+
+          <View style={styles.botonesFormulario}>
+            <TouchableHighlight
+              underlayColor="#16a34a"
+              onPress={guardarPieza}
+              style={styles.botonGuardar}
+            >
+              <Text style={styles.botonTexto}>Guardar</Text>
+            </TouchableHighlight>
+
+            <TouchableHighlight
+              underlayColor="#9ca3af"
+              onPress={() => setPantalla('principal')}
+              style={styles.botonCancelar}
+            >
+              <Text style={styles.botonTexto}>Cancelar</Text>
+            </TouchableHighlight>
+          </View>
+
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // ── PANTALLA PRINCIPAL ──
   return (
     <SafeAreaView style={styles.contenedor}>
       <Text style={styles.titulo}>Piezas</Text>
 
       <TouchableHighlight
         underlayColor="#2563eb"
-        onPress={() => console.log('Abrir formulario')}
+        onPress={() => setPantalla('formulario')}
         style={styles.botonAgregar}
       >
         <Text style={styles.botonAgregarTexto}>Agregar Pieza</Text>
@@ -157,5 +272,52 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 13,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 4,
+    marginTop: 12,
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 15,
+  },
+  pickerContenedor: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+  },
+  botonesFormulario: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    marginBottom: 40,
+    gap: 12,
+  },
+  botonGuardar: {
+    flex: 1,
+    backgroundColor: '#22c55e',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  botonCancelar: {
+    flex: 1,
+    backgroundColor: '#6b7280',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  botonTexto: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
