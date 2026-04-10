@@ -121,6 +121,54 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 15,
   },
+  // Modal
+  modalFondo: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContenido: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    width: '85%',
+    elevation: 5,
+  },
+  modalTitulo: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1e293b',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalFila: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  modalEtiqueta: {
+    fontWeight: 'bold',
+    color: '#374151',
+    width: 110,
+    fontSize: 14,
+  },
+  modalValor: {
+    color: '#64748b',
+    fontSize: 14,
+    flex: 1,
+  },
+  botonCerrar: {
+    backgroundColor: '#3b82f6',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  botonCerrarTexto: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
 });
 
 export default styles;

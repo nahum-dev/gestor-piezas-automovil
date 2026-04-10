@@ -7,12 +7,16 @@ import {
   SafeAreaView,
   TextInput,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import styles from './styles';
 
 export default function App() {
   const [pantalla, setPantalla] = useState('principal');
+  const [piezaSeleccionada, setPiezaSeleccionada] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
   const [piezas, setPiezas] = useState([
     {
       id: '1',
@@ -40,6 +44,11 @@ export default function App() {
 
   const eliminarPieza = (id) => {
     setPiezas(piezas.filter((p) => p.id !== id));
+  };
+
+  const verDetalle = (pieza) => {
+    setPiezaSeleccionada(pieza);
+    setModalVisible(true);
   };
 
   const guardarPieza = () => {
@@ -71,7 +80,7 @@ export default function App() {
   const renderPieza = ({ item }) => (
     <TouchableHighlight
       underlayColor="#e0e0e0"
-      onPress={() => console.log('Ver detalle de:', item.tipo)}
+      onPress={() => verDetalle(item)}
       style={styles.tarjeta}
     >
       <View style={styles.tarjetaContenido}>
@@ -90,6 +99,52 @@ export default function App() {
     </TouchableHighlight>
   );
 
+  // ── MODAL DE DETALLES ──
+  const renderModal = () => (
+    <Modal
+      visible={modalVisible}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.modalFondo}>
+        <View style={styles.modalContenido}>
+          <Text style={styles.modalTitulo}>Detalle de la pieza</Text>
+
+          <View style={styles.modalFila}>
+            <Text style={styles.modalEtiqueta}>Pieza:</Text>
+            <Text style={styles.modalValor}>{piezaSeleccionada?.tipo}</Text>
+          </View>
+          <View style={styles.modalFila}>
+            <Text style={styles.modalEtiqueta}>Marca:</Text>
+            <Text style={styles.modalValor}>{piezaSeleccionada?.marca}</Text>
+          </View>
+          <View style={styles.modalFila}>
+            <Text style={styles.modalEtiqueta}>No Serie:</Text>
+            <Text style={styles.modalValor}>{piezaSeleccionada?.noSerie}</Text>
+          </View>
+          <View style={styles.modalFila}>
+            <Text style={styles.modalEtiqueta}>Precio:</Text>
+            <Text style={styles.modalValor}>${piezaSeleccionada?.precio}</Text>
+          </View>
+          <View style={styles.modalFila}>
+            <Text style={styles.modalEtiqueta}>Fecha de Cambio:</Text>
+            <Text style={styles.modalValor}>{piezaSeleccionada?.fecha}</Text>
+          </View>
+
+          <TouchableHighlight
+            underlayColor="#2563eb"
+            onPress={() => setModalVisible(false)}
+            style={styles.botonCerrar}
+          >
+            <Text style={styles.botonCerrarTexto}>Cerrar</Text>
+          </TouchableHighlight>
+        </View>
+      </View>
+    </Modal>
+  );
+
+  // ── PANTALLA FORMULARIO ──
   if (pantalla === 'formulario') {
     return (
       <SafeAreaView style={styles.contenedor}>
@@ -167,8 +222,11 @@ export default function App() {
     );
   }
 
+  // ── PANTALLA PRINCIPAL ──
   return (
     <SafeAreaView style={styles.contenedor}>
+      {renderModal()}
+
       <Text style={styles.titulo}>Piezas</Text>
 
       <TouchableHighlight
