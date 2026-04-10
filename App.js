@@ -52,8 +52,19 @@ export default function App() {
   };
 
   const validarFecha = (valor) => {
-    const soloValido = valor.replace(/[^0-9-]/g, '');
-    setFecha(soloValido);
+    // Quitamos todo lo que no sea número
+    const soloNumeros = valor.replace(/[^0-9]/g, '');
+
+    // Insertamos guiones automáticamente
+    let formateado = soloNumeros;
+    if (soloNumeros.length >= 5) {
+      formateado = soloNumeros.slice(0, 4) + '-' + soloNumeros.slice(4);
+    }
+    if (soloNumeros.length >= 7) {
+      formateado = soloNumeros.slice(0, 4) + '-' + soloNumeros.slice(4, 6) + '-' + soloNumeros.slice(6, 8);
+    }
+
+    setFecha(formateado);
   };
 
   const validarNoSerie = (valor) => {
