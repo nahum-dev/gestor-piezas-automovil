@@ -121,7 +121,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 15,
   },
-  // Modal
   modalFondo: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

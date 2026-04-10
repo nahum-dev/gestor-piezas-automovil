@@ -51,15 +51,70 @@ export default function App() {
     setModalVisible(true);
   };
 
+  const validarFecha = (valor) => {
+    const soloValido = valor.replace(/[^0-9-]/g, '');
+    setFecha(soloValido);
+  };
+
+  const validarNoSerie = (valor) => {
+    const soloValido = valor.replace(/[^a-zA-Z0-9]/g, '');
+    setNoSerie(soloValido);
+  };
+
+  const validarPrecio = (valor) => {
+    const soloValido = valor.replace(/[^0-9.]/g, '');
+    const partes = soloValido.split('.');
+    if (partes.length > 2) return;
+    setPrecio(soloValido);
+  };
+
+  const validarMarca = (valor) => {
+    const soloValido = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '');
+    setMarca(soloValido);
+  };
+
   const guardarPieza = () => {
     if (!marca || !noSerie || !precio || !fecha) {
       alert('Por favor completa todos los campos');
       return;
     }
+
+    const regexFecha = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regexFecha.test(fecha)) {
+      alert('La fecha debe tener el formato YYYY-MM-DD\nEjemplo: 2024-03-15');
+      return;
+    }
+
+    const fechaObj = new Date(fecha);
+    if (isNaN(fechaObj.getTime())) {
+      alert('La fecha ingresada no es válida');
+      return;
+    }
+
+    if (fechaObj > new Date()) {
+      alert('La fecha de cambio no puede ser en el futuro');
+      return;
+    }
+
+    if (parseFloat(precio) <= 0 || isNaN(parseFloat(precio))) {
+      alert('El precio debe ser un número mayor a 0');
+      return;
+    }
+
+    if (noSerie.length < 4) {
+      alert('El número de serie debe tener al menos 4 caracteres');
+      return;
+    }
+
+    if (marca.trim().length < 2) {
+      alert('La marca debe tener al menos 2 caracteres');
+      return;
+    }
+
     const nueva = {
       id: Date.now().toString(),
       tipo,
-      marca,
+      marca: marca.trim(),
       noSerie,
       precio,
       fecha,
@@ -99,7 +154,6 @@ export default function App() {
     </TouchableHighlight>
   );
 
-  // ── MODAL DE DETALLES ──
   const renderModal = () => (
     <Modal
       visible={modalVisible}
@@ -144,7 +198,6 @@ export default function App() {
     </Modal>
   );
 
-  // ── PANTALLA FORMULARIO ──
   if (pantalla === 'formulario') {
     return (
       <SafeAreaView style={styles.contenedor}>
@@ -171,33 +224,39 @@ export default function App() {
           <TextInput
             style={styles.input}
             value={marca}
-            onChangeText={setMarca}
+            onChangeText={validarMarca}
             placeholder="Ej: Bosch"
+            maxLength={30}
           />
 
           <Text style={styles.label}>No. Serie</Text>
           <TextInput
             style={styles.input}
             value={noSerie}
-            onChangeText={setNoSerie}
+            onChangeText={validarNoSerie}
             placeholder="Ej: S013523"
+            maxLength={20}
+            autoCapitalize="characters"
           />
 
           <Text style={styles.label}>Precio</Text>
           <TextInput
             style={styles.input}
             value={precio}
-            onChangeText={setPrecio}
+            onChangeText={validarPrecio}
             placeholder="Ej: 15.00"
             keyboardType="decimal-pad"
+            maxLength={10}
           />
 
           <Text style={styles.label}>Fecha de Cambio</Text>
           <TextInput
             style={styles.input}
             value={fecha}
-            onChangeText={setFecha}
+            onChangeText={validarFecha}
             placeholder="YYYY-MM-DD"
+            keyboardType="numeric"
+            maxLength={10}
           />
 
           <View style={styles.botonesFormulario}>
@@ -222,7 +281,6 @@ export default function App() {
     );
   }
 
-  // ── PANTALLA PRINCIPAL ──
   return (
     <SafeAreaView style={styles.contenedor}>
       {renderModal()}
