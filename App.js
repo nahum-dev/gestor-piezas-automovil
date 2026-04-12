@@ -13,11 +13,19 @@ import { Picker } from '@react-native-picker/picker';
 import styles from './styles';
 
 export default function App() {
-  const [pantalla, setPantalla] = useState('principal');
+
+  //estados generales
+  // Controla qué pantalla se muestra (principal o formulario)
+  const [vistaActual, setVistaActual] = useState('principal');
+
+  // Guarda la pieza seleccionada para mostrar sus detalles
   const [piezaSeleccionada, setPiezaSeleccionada] = useState(null);
+
+  // Controla la visibilidad del modal
   const [modalVisible, setModalVisible] = useState(false);
 
-  const [piezas, setPiezas] = useState([
+  // Lista de piezas registradas en la aplicación
+  const [listaPiezas, setListaPiezas] = useState([
     {
       id: '1',
       tipo: 'Bujía',
@@ -36,93 +44,136 @@ export default function App() {
     },
   ]);
 
+ 
+  //estados para el formulario de registro de piezas
+  // Tipo de pieza seleccionada
   const [tipo, setTipo] = useState('Bujía');
+
+  // Campos del formulario
   const [marca, setMarca] = useState('');
   const [noSerie, setNoSerie] = useState('');
   const [precio, setPrecio] = useState('');
   const [fecha, setFecha] = useState('');
 
-  const eliminarPieza = (id) => {
-    setPiezas(piezas.filter((p) => p.id !== id));
+  
+  //funciones auxiliares
+  // Limpia todos los campos del formulario
+  const limpiarFormulario = () => {
+    setTipo('Bujía');
+    setMarca('');
+    setNoSerie('');
+    setPrecio('');
+    setFecha('');
   };
 
-  const verDetalle = (pieza) => {
-    setPiezaSeleccionada(pieza);
-    setModalVisible(true);
+  // Valida si la fecha ingresada es correcta
+  const esFechaValida = (fecha) => {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+
+    // Verifica el formato YYYY-MM-DD
+    if (!regex.test(fecha)) return false;
+
+    const fechaObj = new Date(fecha);
+
+    // Verifica que la fecha exista realmente
+    if (isNaN(fechaObj.getTime())) return false;
+
+    // Evita fechas futuras
+    if (fechaObj > new Date()) return false;
+
+    return true;
   };
 
+  //validaciones de input
+  // Formatea automáticamente la fecha mientras el usuario escribe
   const validarFecha = (valor) => {
-    // Quitamos todo lo que no sea número
     const soloNumeros = valor.replace(/[^0-9]/g, '');
 
-    // Insertamos guiones automáticamente
     let formateado = soloNumeros;
+
     if (soloNumeros.length >= 5) {
       formateado = soloNumeros.slice(0, 4) + '-' + soloNumeros.slice(4);
     }
     if (soloNumeros.length >= 7) {
-      formateado = soloNumeros.slice(0, 4) + '-' + soloNumeros.slice(4, 6) + '-' + soloNumeros.slice(6, 8);
+      formateado =
+        soloNumeros.slice(0, 4) +
+        '-' +
+        soloNumeros.slice(4, 6) +
+        '-' +
+        soloNumeros.slice(6, 8);
     }
 
     setFecha(formateado);
   };
 
+  // Permite solo letras y números en el número de serie
   const validarNoSerie = (valor) => {
-    const soloValido = valor.replace(/[^a-zA-Z0-9]/g, '');
-    setNoSerie(soloValido);
+    setNoSerie(valor.replace(/[^a-zA-Z0-9]/g, ''));
   };
 
+  // Permite solo números y un punto decimal en el precio
   const validarPrecio = (valor) => {
-    const soloValido = valor.replace(/[^0-9.]/g, '');
-    const partes = soloValido.split('.');
+    const limpio = valor.replace(/[^0-9.]/g, '');
+    const partes = limpio.split('.');
+
+    // Evita múltiples puntos decimales
     if (partes.length > 2) return;
-    setPrecio(soloValido);
+
+    setPrecio(limpio);
   };
 
+  // Permite solo letras en la marca
   const validarMarca = (valor) => {
-    const soloValido = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, '');
-    setMarca(soloValido);
+    setMarca(valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g, ''));
   };
 
+  //funciones principales
+  // Elimina una pieza del historial usando su ID
+  const eliminarPieza = (id) => {
+    setListaPiezas(listaPiezas.filter((p) => p.id !== id));
+  };
+
+  // Muestra el modal con los detalles de la pieza seleccionada
+  const verDetalle = (pieza) => {
+    setPiezaSeleccionada(pieza);
+    setModalVisible(true);
+  };
+
+  // Guarda una nueva pieza después de validar los datos
   const guardarPieza = () => {
+
+    // Validación de campos vacíos
     if (!marca || !noSerie || !precio || !fecha) {
       alert('Por favor completa todos los campos');
       return;
     }
 
-    const regexFecha = /^\d{4}-\d{2}-\d{2}$/;
-    if (!regexFecha.test(fecha)) {
-      alert('La fecha debe tener el formato YYYY-MM-DD\nEjemplo: 2024-03-15');
+    // Validación de fecha
+    if (!esFechaValida(fecha)) {
+      alert('Fecha inválida. Usa formato YYYY-MM-DD');
       return;
     }
 
-    const fechaObj = new Date(fecha);
-    if (isNaN(fechaObj.getTime())) {
-      alert('La fecha ingresada no es válida');
-      return;
-    }
-
-    if (fechaObj > new Date()) {
-      alert('La fecha de cambio no puede ser en el futuro');
-      return;
-    }
-
+    // Validación de precio
     if (parseFloat(precio) <= 0 || isNaN(parseFloat(precio))) {
-      alert('El precio debe ser un número mayor a 0');
+      alert('El precio debe ser mayor a 0');
       return;
     }
 
+    // Validación de número de serie
     if (noSerie.length < 4) {
       alert('El número de serie debe tener al menos 4 caracteres');
       return;
     }
 
+    // Validación de marca
     if (marca.trim().length < 2) {
       alert('La marca debe tener al menos 2 caracteres');
       return;
     }
 
-    const nueva = {
+    // Creación del objeto nueva pieza
+    const nuevaPieza = {
       id: Date.now().toString(),
       tipo,
       marca: marca.trim(),
@@ -130,19 +181,23 @@ export default function App() {
       precio,
       fecha,
     };
-    setPiezas([...piezas, nueva]);
-    setTipo('Bujía');
-    setMarca('');
-    setNoSerie('');
-    setPrecio('');
-    setFecha('');
-    setPantalla('principal');
+
+    // Se agrega la nueva pieza a la lista
+    setListaPiezas([...listaPiezas, nuevaPieza]);
+
+    // Limpia el formulario y vuelve a la pantalla principal
+    limpiarFormulario();
+    setVistaActual('principal');
   };
 
-  const piezasOrdenadas = [...piezas].sort(
+  // Ordena las piezas por fecha (más reciente primero)
+  const piezasOrdenadas = [...listaPiezas].sort(
     (a, b) => new Date(b.fecha) - new Date(a.fecha)
   );
 
+  
+  //render de componentes
+  // Renderiza cada tarjeta de pieza
   const renderPieza = ({ item }) => (
     <TouchableHighlight
       underlayColor="#e0e0e0"
@@ -150,76 +205,62 @@ export default function App() {
       style={styles.tarjeta}
     >
       <View style={styles.tarjetaContenido}>
-        <View style={styles.tarjetaInfo}>
+        <View>
           <Text style={styles.tarjetaTipo}>{item.tipo}</Text>
-          <Text style={styles.tarjetaFecha}>Fecha de cambio: {item.fecha}</Text>
+          <Text>Marca: {item.marca}</Text>
+          <Text>📅 {item.fecha}</Text>
+          <Text>💲 {item.precio}</Text>
         </View>
+
         <TouchableHighlight
           underlayColor="#ff6b6b"
           onPress={() => eliminarPieza(item.id)}
           style={styles.botonEliminar}
         >
-          <Text style={styles.botonEliminarTexto}>Eliminar</Text>
+          <Text style={styles.botonEliminarTexto}>🗑</Text>
         </TouchableHighlight>
       </View>
     </TouchableHighlight>
   );
 
+  // Renderiza el modal con los detalles
   const renderModal = () => (
-    <Modal
-      visible={modalVisible}
-      transparent={true}
-      animationType="fade"
-      onRequestClose={() => setModalVisible(false)}
-    >
+    <Modal visible={modalVisible} transparent animationType="fade">
       <View style={styles.modalFondo}>
         <View style={styles.modalContenido}>
+
           <Text style={styles.modalTitulo}>Detalle de la pieza</Text>
 
-          <View style={styles.modalFila}>
-            <Text style={styles.modalEtiqueta}>Pieza:</Text>
-            <Text style={styles.modalValor}>{piezaSeleccionada?.tipo}</Text>
-          </View>
-          <View style={styles.modalFila}>
-            <Text style={styles.modalEtiqueta}>Marca:</Text>
-            <Text style={styles.modalValor}>{piezaSeleccionada?.marca}</Text>
-          </View>
-          <View style={styles.modalFila}>
-            <Text style={styles.modalEtiqueta}>No Serie:</Text>
-            <Text style={styles.modalValor}>{piezaSeleccionada?.noSerie}</Text>
-          </View>
-          <View style={styles.modalFila}>
-            <Text style={styles.modalEtiqueta}>Precio:</Text>
-            <Text style={styles.modalValor}>${piezaSeleccionada?.precio}</Text>
-          </View>
-          <View style={styles.modalFila}>
-            <Text style={styles.modalEtiqueta}>Fecha de Cambio:</Text>
-            <Text style={styles.modalValor}>{piezaSeleccionada?.fecha}</Text>
-          </View>
+          <Text>🔧 {piezaSeleccionada?.tipo}</Text>
+          <Text>🏷 {piezaSeleccionada?.marca}</Text>
+          <Text>🔢 {piezaSeleccionada?.noSerie}</Text>
+          <Text>💲 {piezaSeleccionada?.precio}</Text>
+          <Text>📅 {piezaSeleccionada?.fecha}</Text>
 
           <TouchableHighlight
-            underlayColor="#2563eb"
             onPress={() => setModalVisible(false)}
             style={styles.botonCerrar}
           >
             <Text style={styles.botonCerrarTexto}>Cerrar</Text>
           </TouchableHighlight>
+
         </View>
       </View>
     </Modal>
   );
 
-  if (pantalla === 'formulario') {
+
+  // Vista del formulario para agregar una nueva pieza
+  if (vistaActual === 'formulario') {
     return (
       <SafeAreaView style={styles.contenedor}>
-        <Text style={styles.titulo}>Registro de piezas</Text>
+        <Text style={styles.titulo}>Registrar pieza</Text>
+
         <ScrollView>
+
           <Text style={styles.label}>Pieza</Text>
           <View style={styles.pickerContenedor}>
-            <Picker
-              selectedValue={tipo}
-              onValueChange={(value) => setTipo(value)}
-            >
+            <Picker selectedValue={tipo} onValueChange={setTipo}>
               <Picker.Item label="Bujía" value="Bujía" />
               <Picker.Item label="Filtro de aceite" value="Filtro de aceite" />
               <Picker.Item label="Filtro de aire" value="Filtro de aire" />
@@ -232,47 +273,20 @@ export default function App() {
           </View>
 
           <Text style={styles.label}>Marca</Text>
-          <TextInput
-            style={styles.input}
-            value={marca}
-            onChangeText={validarMarca}
-            placeholder="Ej: Bosch"
-            maxLength={30}
-          />
+          <TextInput style={styles.input} value={marca} onChangeText={validarMarca} />
 
-          <Text style={styles.label}>No. Serie</Text>
-          <TextInput
-            style={styles.input}
-            value={noSerie}
-            onChangeText={validarNoSerie}
-            placeholder="Ej: S013523"
-            maxLength={20}
-            autoCapitalize="characters"
-          />
+          <Text style={styles.label}>No Serie</Text>
+          <TextInput style={styles.input} value={noSerie} onChangeText={validarNoSerie} />
 
           <Text style={styles.label}>Precio</Text>
-          <TextInput
-            style={styles.input}
-            value={precio}
-            onChangeText={validarPrecio}
-            placeholder="Ej: 15.00"
-            keyboardType="decimal-pad"
-            maxLength={10}
-          />
+          <TextInput style={styles.input} value={precio} onChangeText={validarPrecio} />
 
-          <Text style={styles.label}>Fecha de Cambio</Text>
-          <TextInput
-            style={styles.input}
-            value={fecha}
-            onChangeText={validarFecha}
-            placeholder="YYYY-MM-DD"
-            keyboardType="numeric"
-            maxLength={10}
-          />
+          <Text style={styles.label}>Fecha</Text>
+          <TextInput style={styles.input} value={fecha} onChangeText={validarFecha} />
 
           <View style={styles.botonesFormulario}>
+
             <TouchableHighlight
-              underlayColor="#16a34a"
               onPress={guardarPieza}
               style={styles.botonGuardar}
             >
@@ -280,42 +294,40 @@ export default function App() {
             </TouchableHighlight>
 
             <TouchableHighlight
-              underlayColor="#9ca3af"
-              onPress={() => setPantalla('principal')}
+              onPress={() => setVistaActual('principal')}
               style={styles.botonCancelar}
             >
               <Text style={styles.botonTexto}>Cancelar</Text>
             </TouchableHighlight>
+
           </View>
+
         </ScrollView>
       </SafeAreaView>
     );
   }
 
+  //vista principal (historial de piezas)
   return (
     <SafeAreaView style={styles.contenedor}>
+
       {renderModal()}
 
-      <Text style={styles.titulo}>Piezas</Text>
+      <Text style={styles.titulo}>Historial de piezas</Text>
 
       <TouchableHighlight
-        underlayColor="#2563eb"
-        onPress={() => setPantalla('formulario')}
+        onPress={() => setVistaActual('formulario')}
         style={styles.botonAgregar}
       >
-        <Text style={styles.botonAgregarTexto}>Agregar Pieza</Text>
+        <Text style={styles.botonAgregarTexto}>+ Agregar Pieza</Text>
       </TouchableHighlight>
 
-      {piezasOrdenadas.length === 0 ? (
-        <Text style={styles.mensajeVacio}>No hay piezas. Agregue una</Text>
-      ) : (
-        <FlatList
-          data={piezasOrdenadas}
-          keyExtractor={(item) => item.id}
-          renderItem={renderPieza}
-          style={styles.lista}
-        />
-      )}
+      <FlatList
+        data={piezasOrdenadas}
+        keyExtractor={(item) => item.id}
+        renderItem={renderPieza}
+      />
+
     </SafeAreaView>
   );
 }
